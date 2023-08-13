@@ -51,20 +51,57 @@ jobs:
             aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
             aws configure set default.region $AWS_DEFAULT_REGION
             aws configure set aws_session_token $AWS_SESSION_TOKEN
-            eksctl create cluster --name my-eks-cluster --region us-east-1 --nodegroup-name ng-1 --nodes 2 --node-type t2.medium
+            eksctl create cluster --name my-eks-cluster2 --region us-east-1 --nodegroup-name ng-1 --nodes 2 --node-type t2.medium
       - run:
           name: Update kubectl configuration for EKS cluster
           command: |
-            aws eks --region us-east-1 update-kubeconfig --name my-eks-cluster
+            aws eks --region us-east-1 update-kubeconfig --name my-eks-cluster2
       - run:
           name: Deploy to EKS cluster
           command: |
             kubectl apply -f deployment-blue.yaml
             kubectl apply -f service-blue.yaml
 
+  deploy-eks-green:
+    executor: default
+    steps:
+      - checkout
+      - run:
+          name: Install kubectl and Configure AWS CLI
+          command: |
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            chmod +x kubectl
+            sudo mv kubectl /usr/local/bin/
+            pip install awscli
+            aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+            aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+            aws configure set default.region $AWS_DEFAULT_REGION
+            aws configure set aws_session_token $AWS_SESSION_TOKEN
+      - run:
+          name: Update kubectl configuration for EKS cluster
+          command: |
+            aws eks --region us-east-1 update-kubeconfig --name my-eks-cluster2
+      - run:
+          name: Deploy to Green Environment
+          command: |
+            kubectl apply -f deployment-green.yaml
+            kubectl apply -f service-green.yaml
+
+  switch-to-green:
+    executor: default
+    steps:
+      - checkout
+      - run:
+          name: Perform Blue to Green Switch
+          command: |
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            chmod +x kubectl
+            sudo mv kubectl /usr/local/bin/
+            kubectl set image deployment/my-nginx-app-deployment my-nginx-app=my-nginx-app:green
+
 workflows:
   version: 2
-  build-lint-deploy:
+  blue-green-deploy:
     jobs:
       - lint
       - build:
@@ -73,3 +110,10 @@ workflows:
       - deploy-eks-blue:
           requires:
             - build
+      - deploy-eks-green:
+          requires:
+            - build
+      - switch-to-green:
+          requires:
+            - deploy-eks-blue
+            - deploy-eks-green
