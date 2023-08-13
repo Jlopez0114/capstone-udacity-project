@@ -65,6 +65,6 @@ workflows:
       - build:
           requires:
             - lint
-      - deploy-eks:
+      - deploy-eks-blue:
           requires:
             - build
