@@ -120,6 +120,7 @@ jobs:
       - run:
           name: Perform Blue to Green Switch
           command: |
+            kubectl config use-context my-eks-cluster2  # Use your EKS context name
             kubectl set image deployment/my-nginx-app-deployment my-nginx-app=my-nginx-app:green
 
 workflows:
