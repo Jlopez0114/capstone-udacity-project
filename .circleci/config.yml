@@ -5,6 +5,18 @@ executors:
       - image: circleci/python:3.8
 
 jobs:
+
+  lint:
+    executor: default
+    steps:
+      - checkout
+      - run:
+          name: Run Linting
+          command: |
+            # Run your linting commands here
+            # Example for Python using flake8:
+            pip install flake8
+            flake8 .ff
   build:
     executor: default
     steps:
@@ -24,7 +36,9 @@ jobs:
 
 workflows:
   version: 2
-  build-deploy:
+  build-lint-deploy:
     jobs:
-      - build
-
+      - lint
+      - build:
+          requires:
+            - lint
