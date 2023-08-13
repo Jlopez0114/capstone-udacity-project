@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app-blue
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: my-app
+      env: blue
+  template:
+    metadata:
+      labels:
+        app: my-app
+        env: blue
+    spec:
+      containers:
+        - name: my-app-container
+          image: juanlopez0114/my-nginx-app:latest  # Update this with your image
+          ports:
+            - containerPort: 80

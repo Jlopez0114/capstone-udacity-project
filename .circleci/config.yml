@@ -17,6 +17,7 @@ jobs:
             # Example for Python using flake8:
             pip install flake8
             flake8 .
+
   build:
     executor: default
     steps:
@@ -33,6 +34,26 @@ jobs:
             docker login -u "$DOCKER_USERNAME" -p "$DOCKER_ACCESS_TOKEN"
             docker tag my-nginx-app:latest $DOCKER_USERNAME/my-nginx-app:latest
             docker push $DOCKER_USERNAME/my-nginx-app:latest
+  
+  deploy-eks:
+    executor: default
+    steps:
+      - checkout
+      - run:
+          name: Install kubectl and create eks cluster
+          command: |
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            chmod +x kubectl
+            eksctl create cluster --name my-eks-cluster --region us-east-1 --nodegroup-name ng-1 --nodes 2 --node-type t2.medium
+      - run:
+          name: Update kubectl configuration for EKS cluster
+          command: |
+            aws eks --region us-east-1 update-kubeconfig --name my-eks-cluster
+      - run:
+          name: Deploy to EKS cluster
+          command: |
+            kubectl apply -f deployment-blue.yaml
+            kubectl apply -f service-blue.yaml
 
 workflows:
   version: 2
@@ -42,3 +63,6 @@ workflows:
       - build:
           requires:
             - lint
+      - deploy-eks:
+          requires:
+            - build
