@@ -35,7 +35,7 @@ jobs:
             docker tag my-nginx-app:latest $DOCKER_USERNAME/my-nginx-app:latest
             docker push $DOCKER_USERNAME/my-nginx-app:latest
   
-  deploy-eks:
+  deploy-eks-blue:
     executor: default
     steps:
       - checkout
@@ -44,6 +44,8 @@ jobs:
           command: |
             curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
             chmod +x kubectl
+            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            sudo mv /tmp/eksctl /usr/local/bin
             eksctl create cluster --name my-eks-cluster --region us-east-1 --nodegroup-name ng-1 --nodes 2 --node-type t2.medium
       - run:
           name: Update kubectl configuration for EKS cluster
