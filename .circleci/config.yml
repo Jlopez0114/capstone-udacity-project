@@ -16,7 +16,7 @@ jobs:
             # Run your linting commands here
             # Example for Python using flake8:
             pip install flake8
-            flake8 .ff
+            flake8 .
   build:
     executor: default
     steps:
