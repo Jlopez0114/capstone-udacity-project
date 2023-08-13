@@ -122,7 +122,8 @@ jobs:
           command: |
             aws eks --region us-east-1 update-kubeconfig --name my-eks-cluster2
             kubectl config use-context arn:aws:eks:us-east-1:023550034014:cluster/my-eks-cluster2
-            kubectl set image deployment/my-nginx-app-deployment-green my-nginx-app=juanlopez0114/my-nginx-app:green
+            kubectl set image deployment/my-nginx-app-deployment-green my-nginx-app-container=juanlopez0114/my-nginx-app:green
+
 
 
 
