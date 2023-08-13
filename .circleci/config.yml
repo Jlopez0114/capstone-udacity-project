@@ -45,7 +45,7 @@ jobs:
           command: |
             docker login -u "$DOCKER_USERNAME" -p "$DOCKER_ACCESS_TOKEN"
       - run:
-          name: Install kubectl and eksctl
+          name: Install kubectl and eksctl and create eks cluster
           command: |
             curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
             chmod +x kubectl
@@ -57,6 +57,8 @@ jobs:
             aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
             aws configure set default.region $AWS_DEFAULT_REGION
             aws configure set aws_session_token $AWS_SESSION_TOKEN
+            eksctl create cluster --name my-eks-cluster2 --region us-east-1 --nodegroup-name ng-1 --nodes 2 --node-type t2.medium
+
       - run:
           name: Update kubectl configuration for EKS cluster
           command: |
@@ -123,7 +125,7 @@ jobs:
             aws eks --region us-east-1 update-kubeconfig --name my-eks-cluster2
             kubectl config use-context arn:aws:eks:us-east-1:023550034014:cluster/my-eks-cluster2
             kubectl set image deployment/my-nginx-app-deployment-green my-nginx-app-container=juanlopez0114/my-nginx-app:green
-            
+
 
 
 
