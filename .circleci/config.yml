@@ -35,12 +35,11 @@ jobs:
             docker tag my-nginx-app:latest $DOCKER_USERNAME/my-nginx-app:latest
             docker push $DOCKER_USERNAME/my-nginx-app:latest
   
-  deploy-eks-blue:
+  install-kubectl-eksctl:
     executor: default
     steps:
-      - checkout
       - run:
-          name: Install kubectl and create eks cluster
+          name: Install kubectl and eksctl
           command: |
             curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
             chmod +x kubectl
@@ -52,23 +51,25 @@ jobs:
             aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
             aws configure set default.region $AWS_DEFAULT_REGION
             aws configure set aws_session_token $AWS_SESSION_TOKEN
-          #  eksctl create cluster --name my-eks-cluster2 --region us-east-1 --nodegroup-name ng-1 --nodes 2 --node-type t2.medium
+  
+  deploy-eks-blue:
+    executor: default
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.7
+      - run:
+          name: Authenticate to Docker Hub
+          command: |
+            docker login -u "$DOCKER_USERNAME" -p "$DOCKER_ACCESS_TOKEN"
+      - install-kubectl-eksctl
       - run:
           name: Update kubectl configuration for EKS cluster
           command: |
-            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-            chmod +x kubectl
-            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-            sudo mv /tmp/eksctl /usr/local/bin
             aws eks --region us-east-1 update-kubeconfig --name my-eks-cluster2
       - run:
           name: Deploy to EKS cluster
           command: |
-            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-            chmod +x kubectl
-            sudo mv kubectl /usr/local/bin/
-            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-            sudo mv /tmp/eksctl /usr/local/bin
             kubectl apply -f deployment-blue.yml
             kubectl apply -f service-blue.yml
 
@@ -76,36 +77,20 @@ jobs:
     executor: default
     steps:
       - checkout
+      - setup_remote_docker:
+          version: 20.10.7
       - run:
-          name: Install kubectl and Configure AWS CLI
+          name: Authenticate to Docker Hub
           command: |
-            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-            chmod +x kubectl
-            sudo mv kubectl /usr/local/bin/
-            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-            sudo mv /tmp/eksctl /usr/local/bin
-            pip install awscli
-            aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-            aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-            aws configure set default.region $AWS_DEFAULT_REGION
-            aws configure set aws_session_token $AWS_SESSION_TOKEN
+            docker login -u "$DOCKER_USERNAME" -p "$DOCKER_ACCESS_TOKEN"
+      - install-kubectl-eksctl
       - run:
           name: Update kubectl configuration for EKS cluster
           command: |
-            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-            chmod +x kubectl
-            sudo mv kubectl /usr/local/bin/
-            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-            sudo mv /tmp/eksctl /usr/local/bin
             aws eks --region us-east-1 update-kubeconfig --name my-eks-cluster2
       - run:
           name: Deploy to Green Environment
           command: |
-            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-            chmod +x kubectl
-            sudo mv kubectl /usr/local/bin/
-            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-            sudo mv /tmp/eksctl /usr/local/bin
             kubectl apply -f deployment-green.yml
             kubectl apply -f service-green.yml
 
@@ -113,14 +98,10 @@ jobs:
     executor: default
     steps:
       - checkout
+      - install-kubectl-eksctl
       - run:
           name: Perform Blue to Green Switch
           command: |
-            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-            chmod +x kubectl
-            sudo mv kubectl /usr/local/bin/
-            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-            sudo mv /tmp/eksctl /usr/local/bin
             kubectl set image deployment/my-nginx-app-deployment my-nginx-app=my-nginx-app:green
 
 workflows:
