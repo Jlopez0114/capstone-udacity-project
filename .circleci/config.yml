@@ -52,7 +52,7 @@ jobs:
             aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
             aws configure set default.region $AWS_DEFAULT_REGION
             aws configure set aws_session_token $AWS_SESSION_TOKEN
-            eksctl create cluster --name my-eks-cluster --region us-east-1 --nodegroup-name ng-1 --nodes 2 --node-type t2.medium
+            eksctl create cluster --name my-eks-cluster2 --region us-east-1 --nodegroup-name ng-1 --nodes 2 --node-type t2.medium
       - run:
           name: Update kubectl configuration for EKS cluster
           command: |
@@ -60,7 +60,7 @@ jobs:
             chmod +x kubectl
             curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
             sudo mv /tmp/eksctl /usr/local/bin
-            aws eks --region us-east-1 update-kubeconfig --name my-eks-cluster
+            aws eks --region us-east-1 update-kubeconfig --name my-eks-cluster2
       - run:
           name: Deploy to EKS cluster
           command: |
@@ -97,7 +97,7 @@ jobs:
             sudo mv kubectl /usr/local/bin/
             curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
             sudo mv /tmp/eksctl /usr/local/bin
-            aws eks --region us-east-1 update-kubeconfig --name my-eks-cluster
+            aws eks --region us-east-1 update-kubeconfig --name my-eks-cluster2
       - run:
           name: Deploy to Green Environment
           command: |
