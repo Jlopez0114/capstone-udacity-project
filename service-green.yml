@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-nginx-app-service-green
+spec:
+  selector:
+    app: my-nginx-app
+    environment: green
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer  # Use appropriate service type based on your requirements

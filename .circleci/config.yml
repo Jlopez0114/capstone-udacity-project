@@ -51,16 +51,16 @@ jobs:
             aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
             aws configure set default.region $AWS_DEFAULT_REGION
             aws configure set aws_session_token $AWS_SESSION_TOKEN
-            eksctl create cluster --name my-eks-cluster2 --region us-east-1 --nodegroup-name ng-1 --nodes 2 --node-type t2.medium
+            eksctl create cluster --name my-eks-cluster3 --region us-east-1 --nodegroup-name ng-1 --nodes 2 --node-type t2.medium
       - run:
           name: Update kubectl configuration for EKS cluster
           command: |
-            aws eks --region us-east-1 update-kubeconfig --name my-eks-cluster2
+            aws eks --region us-east-1 update-kubeconfig --name my-eks-cluster3
       - run:
           name: Deploy to EKS cluster
           command: |
-            kubectl apply -f deployment-blue.yaml
-            kubectl apply -f service-blue.yaml
+            kubectl apply -f deployment-blue.yml
+            kubectl apply -f service-blue.yml
 
   deploy-eks-green:
     executor: default
@@ -80,12 +80,12 @@ jobs:
       - run:
           name: Update kubectl configuration for EKS cluster
           command: |
-            aws eks --region us-east-1 update-kubeconfig --name my-eks-cluster2
+            aws eks --region us-east-1 update-kubeconfig --name my-eks-cluster3
       - run:
           name: Deploy to Green Environment
           command: |
-            kubectl apply -f deployment-green.yaml
-            kubectl apply -f service-green.yaml
+            kubectl apply -f deployment-green.yml
+            kubectl apply -f service-green.yml
 
   switch-to-green:
     executor: default
@@ -113,6 +113,7 @@ workflows:
       - deploy-eks-green:
           requires:
             - build
+            - deploy-eks-blue
       - switch-to-green:
           requires:
             - deploy-eks-blue

@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-nginx-app-deployment-green
+spec:
+  replicas: 3  # Adjust the number of replicas as needed
+  selector:
+    matchLabels:
+      app: my-nginx-app
+      environment: green
+  template:
+    metadata:
+      labels:
+        app: my-nginx-app
+        environment: green
+    spec:
+      containers:
+        - name: my-nginx-app-container
+          image: juanlopez0114/my-nginx-app:latest  # Update with your actual Docker image
+          ports:
+            - containerPort: 80
