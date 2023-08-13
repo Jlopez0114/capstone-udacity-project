@@ -120,7 +120,10 @@ jobs:
       - run:
           name: Perform Blue to Green Switch
           command: |
+            aws eks --region us-east-1 update-kubeconfig --name my-eks-cluster2
+            kubectl config use-context arn:aws:eks:us-east-1:023550034014:cluster/my-eks-cluster2
             kubectl set image deployment/my-nginx-app-deployment my-nginx-app=my-nginx-app:green
+
 
 workflows:
   version: 2
